@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Build
+        run: ./gradlew build -x test
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Run tests
+        run: ./gradlew test
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Check formatting
+        run: ./gradlew spotlessCheck

@@ -15,17 +15,55 @@ public class RegexHighlighter extends SyntaxHighlighter {
 
   // TODO: For each token, find all matches of its pattern in the input text, convert them into
   // {@code HighlightRegion}s, and combine all of these regions into a single list.
-  @Override
-  public List<HighlightRegion> collectMatches(String text) {
-    throw new UnsupportedOperationException("not implemented yet");
-  }
+  //  @Override
+  //public List<HighlightRegion> collectMatches(String text) {
+    //throw new UnsupportedOperationException("not implemented yet");
+  //}
+    @Override
+    public List<HighlightRegion> collectMatches(String text) {
+        var result = new java.util.ArrayList<HighlightRegion>();
+
+        // Alle Tokens aus MiniJavaTokens anwenden
+        for (var token : highlighting.presets.MiniJavaTokens.defaultTokens()) {
+            var matches = token.test(text);
+            result.addAll(matches);
+        }
+
+        return result;
+    }
+
 
   // TODO: Resolve overlapping regions. Assume that {@code regions} has been normalised and sorted.
   // For any overlapping regions, keep the one that appears first in this list (which reflects the
   // token order) and discard all later overlapping regions. Longer regions that start at the same
   // position are preferred because of the sorting in {@code normalize}.
-  @Override
-  public List<HighlightRegion> resolveConflicts(List<HighlightRegion> regions) {
-    throw new UnsupportedOperationException("not implemented yet");
-  }
-}
+ // @Override
+  //public List<HighlightRegion> resolveConflicts(List<HighlightRegion> regions) {
+    //throw new UnsupportedOperationException("not implemented yet");
+ // }
+//}
+
+
+
+    @Override
+    public List<HighlightRegion> resolveConflicts(List<HighlightRegion> regions) {
+        var result = new java.util.ArrayList<HighlightRegion>();
+
+        for (var r : regions) {
+            boolean overlaps = false;
+
+            for (var existing : result) {
+                // Überlappung prüfen: [a,b) und [c,d)
+                if (r.start() < existing.end() && existing.start() < r.end()) {
+                    overlaps = true;
+                    break;
+                }
+            }
+
+            if (!overlaps) {
+                result.add(r);
+            }
+        }
+
+        return result;
+    } }
