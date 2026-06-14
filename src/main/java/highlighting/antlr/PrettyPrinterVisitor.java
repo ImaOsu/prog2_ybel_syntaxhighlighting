@@ -40,44 +40,216 @@ public final class PrettyPrinterVisitor extends MiniJavaBaseVisitor<Void> {
   // visitClassBody, visitBlock, and visitStatement
   // ----------------------------------------------------
 
-  @Override
-  public Void visitCompilationUnit(MiniJavaParser.CompilationUnitContext ctx) {
-    // TODO:
+  //@Override
+  //public Void visitCompilationUnit(MiniJavaParser.CompilationUnitContext ctx) {
+      @Override
+      public Void visitCompilationUnit(MiniJavaParser.CompilationUnitContext ctx) {
+
+          // package declaration (falls vorhanden)
+          if (ctx.packageDecl() != null) {
+              visit(ctx.packageDecl());
+              nl();
+              nl(); // Leerzeile nach package
+          }
+
+          // import declarations
+          for (var imp : ctx.importDecl()) {
+              visit(imp);
+              nl();
+          }
+          if (!ctx.importDecl().isEmpty()) {
+              nl(); // Leerzeile nach imports
+          }
+
+          // type declarations (Klassen)
+          for (var type : ctx.typeDecl()) {
+              visit(type);
+              nl();
+              nl(); // Leerzeile zwischen Klassen
+          }
+
+          return null;
+      }
+
+
+
+      // TODO:
     // Produce a nicely structured compilation unit:
     // - package declaration (if present),
     // - import declarations (one per line),
     // - type declarations (one after another),
     // with sensible blank lines between these parts.
-    return null;
-  }
+    //return null;
+  //}
 
-  @Override
-  public Void visitClassBody(MiniJavaParser.ClassBodyContext ctx) {
+    @Override
+    public Void visitClassBody(MiniJavaParser.ClassBodyContext ctx) {
+
+        // Öffnende Klammer
+        write("{");
+        nl();
+
+        // Eine Einrückstufe tiefer für den Inhalt
+        currentIndent++;
+
+        // Alle Member-Deklarationen (Felder, Methoden, Konstruktoren)
+        for (var decl : ctx.classBodyDeclaration()) {
+            visit(decl);
+            nl(); // Jede Deklaration auf eine eigene Zeile
+        }
+
+        // Einrückung zurück
+        currentIndent--;
+
+        // Schließende Klammer
+        write("}");
+        return null;
+    }
+
+
+
+ // @Override
+  //public Void visitClassBody(MiniJavaParser.ClassBodyContext ctx) {
     // TODO:
     // Format the contents of a class body:
     // - opening and closing brace,
     // - one member declaration per line,
     // - members indented relative to the class.
-    return null;
-  }
+   // return null;
+  //}
 
-  @Override
-  public Void visitBlock(MiniJavaParser.BlockContext ctx) {
+
+    @Override
+    public Void visitBlock(MiniJavaParser.BlockContext ctx) {
+
+        // Öffnende Klammer
+        write("{");
+        nl();
+
+        // Eine Einrückstufe tiefer für den Blockinhalt
+        currentIndent++;
+
+        // Jede blockStatement auf eine eigene Zeile
+        for (var stmt : ctx.blockStatement()) {
+            visit(stmt);
+            nl();
+        }
+
+        // Einrückung zurück
+        currentIndent--;
+
+        // Schließende Klammer
+        write("}");
+        return null;
+    }
+
+
+
+
+
+
+  //@Override
+  //public Void visitBlock(MiniJavaParser.BlockContext ctx) {
     // TODO:
     // Format a block:
     // - opening and closing brace,
     // - one blockStatement per line,
     // - nested blocks indented further.
-    return null;
-  }
+   // return null;
+  //}
 
-  @Override
-  public Void visitStatement(MiniJavaParser.StatementContext ctx) {
+
+
+
+
+
+    @Override
+    public Void visitStatement(MiniJavaParser.StatementContext ctx) {
+
+        // -------------------------
+        // 1) Block: { ... }
+        // -------------------------
+        if (ctx.block() != null) {
+            visit(ctx.block());
+            return null;
+        }
+
+        // -------------------------
+        // 2) return statement
+        // -------------------------
+        if (ctx.RETURN() != null) {
+            write("return");
+            if (ctx.expression() != null) {
+                write(" ");
+                visit(ctx.expression());
+            }
+            write(";");
+            return null;
+        }
+
+        // -------------------------
+        // 3) if (...) statement (else optional)
+        // -------------------------
+        if (ctx.IF() != null) {
+            // if (expr)
+            write("if (");
+            visit(ctx.expression());
+            write(")");
+            nl();
+
+            // then‑Zweig
+            currentIndent++;
+            visit(ctx.statement(0));
+            currentIndent--;
+
+            // else‑Zweig
+            if (ctx.ELSE() != null) {
+                nl();
+                write("else");
+                nl();
+                currentIndent++;
+                visit(ctx.statement(1));
+                currentIndent--;
+            }
+
+            return null;
+        }
+
+        // -------------------------
+        // 4) while (...) statement
+        // -------------------------
+        if (ctx.WHILE() != null) {
+            write("while (");
+            visit(ctx.expression());
+            write(")");
+            nl();
+
+            currentIndent++;
+            visit(ctx.statement(0));
+            currentIndent--;
+
+            return null;
+        }
+
+        // -------------------------
+        // 5) expression ;
+        // -------------------------
+        if (ctx.expression() != null) {
+            visit(ctx.expression());
+            write(";");
+            return null;
+        }
+
+        return null;
+    }
+
+    // @Override
+  //public Void visitStatement(MiniJavaParser.StatementContext ctx) {
     // TODO:
     // Ensure that each statement (if/while/return/block/...) ends up
     // on exactly one line, with proper indentation for nested statements.
-    return null;
-  }
+    //return null;
+//  }
 
   // ---------------- helper methods ----------------
 
